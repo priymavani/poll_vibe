@@ -7,16 +7,16 @@ import { Switch } from "@/components/ui/switch"
 import { X } from 'lucide-react';
 import { Plus } from 'lucide-react';
 import { PollTypeDropdown } from './PollTypeDropdown';
-
+import axios from 'axios'
+import { useNavigate } from "react-router-dom";
 
 
 
 
 const CreatePoll = () => {
 
+  const [pollTitle, setpollTitle] = useState("")
   const [isChecked, setIsChecked] = useState(true)
-
-
 
   const [options, setOptions] = useState([
     {
@@ -31,7 +31,41 @@ const CreatePoll = () => {
     },
   ])
 
-  console.log(options)
+
+  const navigate = useNavigate();
+
+
+  const CreatePoll = async () => {
+
+    try {
+      const response = await axios.post("http://localhost:8090/poll", {
+        "poll_details": {
+          "poll_title": pollTitle,
+          "poll_options": options.map((item) => item.value),
+          "oneVotePerIP": isChecked
+        },
+        "Created_by": "67c1b8030a9d81fad20caa0e"
+      })
+
+      return (response.data.PollId)
+    } catch (err) {
+      console.log("Error :", err.message)
+    }
+  }
+
+  const HandleCreatePoll = async () => {
+    try {
+      const pollId = await CreatePoll();
+
+      if (pollId) {
+        navigate(`/poll/${pollId}`);
+      } else {
+        console.error("Poll ID is undefined");
+      }
+    } catch (err) {
+      console.error("Error creating poll:", err);
+    }
+  };
 
 
   const handleAddOption = () => {
@@ -72,7 +106,13 @@ const CreatePoll = () => {
         {/* Poll Title */}
         <div className='mb-8'>
           <Label className="text-white text-xs pb-1">Poll Title</Label>
-          <Input type="input" placeholder="Poll Title" className='p-3 text-white bg-[#2A3441] border-[#4e5155] text-sm' />
+          <Input
+            type="text"
+            placeholder="Poll Title"
+            className='p-3 text-white bg-[#2A3441] border-[#4e5155] text-sm'
+            value={pollTitle}
+            onChange={(e) => setpollTitle(e.target.value)} // Fixed syntax
+          />
         </div>
 
         {/* Poll Options */}
@@ -131,7 +171,7 @@ const CreatePoll = () => {
 
 
         <div>
-          <Button className="bg-[#8E51FF] hover:bg-[#8e51ffbb] cursor-pointer w-full my-2">
+          <Button className="bg-[#8E51FF] hover:bg-[#8e51ffbb] cursor-pointer w-full my-2" onClick={HandleCreatePoll}>
             Create Poll
           </Button>
         </div>
@@ -139,7 +179,7 @@ const CreatePoll = () => {
 
       </div>
 
-    </div>
+    </div >
   )
 }
 
