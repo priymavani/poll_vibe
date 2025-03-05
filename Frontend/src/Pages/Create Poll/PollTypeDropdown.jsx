@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar, Image, List, Check, ChevronDown } from "lucide-react";
 
-export function PollTypeDropdown() {
-  const [selectedValue, setSelectedValue] = useState("multiple-choice"); // Default value
+export function PollTypeDropdown({ selectedValue, setSelectedValue }) {
 
   return (
     <Select value={selectedValue} onValueChange={setSelectedValue}>

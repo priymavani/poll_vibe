@@ -85,14 +85,16 @@ const SharePoll = () => {
             </DialogHeader>
 
             <div className="flex justify-between mt-4">
-              <Button className="bg-[#8E51FF] hover:bg-[#8e51ffbb] flex items-center space-x-2">
-                <BarChart2 className="w-4 h-4" />
-                <span>Results</span>
-              </Button>
-              <Button variant="outline" className="flex items-center space-x-2">
+              <Link to={`/poll/${poll_id}/result`}>
+                <Button className="bg-[#8E51FF] hover:bg-[#8e51ffbb] flex items-center space-x-2">
+                  <BarChart2 className="w-4 h-4" />
+                  <span>Results</span>
+                </Button>
+              </Link>
+              {/* <Button variant="outline" className="flex items-center space-x-2">
                 <Share2 className="w-4 h-4" />
                 <span>Share</span>
-              </Button>
+              </Button> */}
             </div>
           </DialogContent>
         </Dialog>
@@ -104,7 +106,7 @@ const SharePoll = () => {
 
         <div className="bg-[#1F2937] max-md:min-w-8/9 md:w-xl p-5 rounded-lg border-t-3 border-[#8E51FF] ">
 
-    
+
           <div>
             <h1 className='scroll-m-20 text-xl font-semibold tracking-tight text-white'>{PollData?.poll_details.poll_title}</h1>
             <h1 className='scroll-m-20 text-xs font-extralight tracking-tight text-white'>By {PollData?.Created_by[0]}</h1>

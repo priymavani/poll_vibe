@@ -9,7 +9,7 @@ import { Plus } from 'lucide-react';
 import { PollTypeDropdown } from './PollTypeDropdown';
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
-
+import ImagePoll from './ImagePoll'
 
 
 
@@ -30,6 +30,10 @@ const CreatePoll = () => {
       value: ""
     },
   ])
+
+
+  const [selectedValue, setSelectedValue] = useState("multiple-choice"); // Default value
+
 
 
   const navigate = useNavigate();
@@ -121,12 +125,12 @@ const CreatePoll = () => {
         <div className='pb-6'>
           <Label className="text-white text-xs pb-1">Poll Type</Label>
           <div className="flex items-center">
-            <PollTypeDropdown />
+            <PollTypeDropdown selectedValue={selectedValue} setSelectedValue={setSelectedValue} />
           </div>
         </div>
 
 
-        <div className='mb-8'>
+        {selectedValue === "image-poll" ? (<ImagePoll/>) : (<div className='mb-8'>
           <Label className="text-white text-xs pb-1">Poll Options</Label>
           {
             options.map((item) => (
@@ -151,13 +155,14 @@ const CreatePoll = () => {
               </div>
             ))
           }
-
           <Button className="cursor-pointer text-xs p-1 bg-[#2A3441] text-white hover:bg-[#d4d4d5] " variant={"outline"} size={"custom"} onClick={handleAddOption}>
             <Plus />Add Option
           </Button>
+        </div>)
+        }
 
 
-        </div>
+
 
 
         <Label className="text-white text-xs pb-1">Poll Settings</Label>
@@ -177,7 +182,7 @@ const CreatePoll = () => {
         </div>
 
 
-      </div>
+      </div >
 
     </div >
   )

@@ -103,7 +103,8 @@ const ResultPoll = () => {
     <div className='bg-[#111827] w-screen h-screen flex flex-col justify-center items-center'>
 
 
-      <div className="bg-[#1F2937] max-md:min-w-8/9 md:w-xl p-5 rounded-lg border-t-3 border-[#8E51FF] ">
+      <div className="bg-[#1F2937] p-5 rounded-lg border-t-3 border-[#8E51FF]  max-[464px]:w-[330px] md:w-3xl">
+
 
 
         <div>
@@ -126,14 +127,18 @@ const ResultPoll = () => {
           <p className='text-red-500'>No valid data</p>
         )} */}
 
-        <ResultSlider
-          polls={SliderResults}
-          theme="default"
-        />
+        <div className='flex items-center max-md:flex-col justify-center'>
 
-        {/* Pie Chart Component */}
-        <div className="max-w-md mx-auto scale-75">
-          <DynamicPieChart data={pollResults} />
+          <ResultSlider
+            polls={SliderResults}
+            theme="default"
+          />
+
+          {/* Pie Chart Component */}
+          <div className="scale-75">
+            <DynamicPieChart data={pollResults} />
+          </div>
+
         </div>
 
 
@@ -149,7 +154,7 @@ const ResultPoll = () => {
 
 
 
-        <div className='my-3 bg-[#565758] h-[1px]'></div>
+        <div className=' bg-[#565758] h-[1px]'></div>
 
         <div className='flex space-x-5'>
 

@@ -24,40 +24,41 @@ const COLOR_THEMES = {
   }
 };
 
-const ResultSlider = ({ 
-  polls = [
-    { label: "sdfsfs", votes: 3, percentage: 60 },
-    { label: "sdfsd", votes: 2, percentage: 40 }
-  ],
+const ResultSlider = ({
+  polls,
   theme = 'default'
 }) => {
-  const totalVotes = polls.reduce((sum, poll) => sum + poll.votes, 0);
+  const totalVotes = polls?.reduce((sum, poll) => sum + poll.votes, 0);
   const themeColors = COLOR_THEMES[theme] || COLOR_THEMES.default;
 
   return (
-    <div className="w-full max-w-md space-y-4 p-4 bg-[#8e51ff13] rounded-lg shadow-md">
-      {polls.map((poll, index) => {
+    <div className="w-full max-w-xl mx-auto space-y-4 p-3 sm:p-4 bg-[#8e51ff34] rounded-lg shadow-md">
+      {polls?.map((poll, index) => {
         const themeColor = themeColors.options[index] || themeColors.options[0];
         return (
           <div key={index} className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className={`text-sm font-medium ${themeColor.textColor}`}>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <span className={`text-sm font-medium ${themeColor.textColor} flex-grow`}>
                 {poll.label}
               </span>
-              <Badge variant="secondary">{poll.votes} votes</Badge>
+              <Badge variant="secondary" className="self-start sm:self-auto">
+                {poll.votes} votes
+              </Badge>
             </div>
-            <Progress 
-              value={poll.percentage} 
-              className={`h-2 ${themeColor.color}`} 
-              indicatorClassName={themeColor.color}
-            />
-            <div className="text-sm text-muted-foreground text-right">
-              {poll.percentage}%
+            <div className="flex items-center space-x-2">
+              <Progress
+                value={poll.percentage}
+                className={`h-2 flex-grow ${themeColor.color}`}
+                indicatorClassName={themeColor.color}
+              />
+              <div className="text-sm text-muted-foreground w-12 text-right">
+                {poll.percentage}%
+              </div>
             </div>
           </div>
         );
       })}
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-white">
         Total votes: {totalVotes}
       </div>
     </div>

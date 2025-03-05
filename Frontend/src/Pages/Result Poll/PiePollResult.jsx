@@ -59,7 +59,7 @@ const DynamicPieChart = ({ data }) => {
     : [{ name: 'No Data', value: 100 }];
 
   return (
-    <div className="bg-[#1F2937] p-4 rounded-lg">
+    <div className="p-0 rounded-lg">
       <PieChart width={400} height={400}>
         <Pie
           data={chartData}
