@@ -93,7 +93,7 @@ const CreatePoll = () => {
   }
 
   return (
-    <div className='bg-[#111827] w-screen h-screen flex flex-col justify-center items-center'>
+    <div className='bg-[#111827] w-screen h-screen flex flex-col justify-center items-center overflow-hidden'>
 
 
       <div className='mb-8'>

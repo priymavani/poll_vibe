@@ -9,7 +9,7 @@ import axios from 'axios';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CheckCircle, Share2, BarChart2 } from "lucide-react";
 import { CircleAlert } from 'lucide-react';
-
+import ShareComponent from './ShareComponent'
 
 
 
@@ -99,12 +99,12 @@ const SharePoll = () => {
       </div>
 
 
-      <div className='bg-[#111827] w-screen h-screen flex flex-col justify-center items-center'>
+      <div className='bg-[#111827] w-screen h-screen flex flex-col justify-start pt-72 items-center'>
 
 
         <div className="bg-[#1F2937] max-md:min-w-8/9 md:w-xl p-5 rounded-lg border-t-3 border-[#8E51FF] ">
 
-
+    
           <div>
             <h1 className='scroll-m-20 text-xl font-semibold tracking-tight text-white'>{PollData?.poll_details.poll_title}</h1>
             <h1 className='scroll-m-20 text-xs font-extralight tracking-tight text-white'>By {PollData?.Created_by[0]}</h1>
@@ -166,6 +166,11 @@ const SharePoll = () => {
         </div>
 
       </div >
+
+      <div className="absolute bottom-30 w-full z-50">
+        <ShareComponent />
+      </div>
+
     </>
   )
 }
