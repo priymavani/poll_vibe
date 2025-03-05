@@ -3,9 +3,12 @@ import { PollDetail } from "./Model/PollDetail.js"
 import { User } from "./Model/User.js"
 import express, { response } from 'express'
 import mongoose from "mongoose"
+import cors from 'cors'
 
 const app = express()
 app.use(express.json())
+app.use(cors())
+
 
 const PORT = 8090;
 const connectDB = async () => {
@@ -73,8 +76,6 @@ app.post('/poll', async (req, res) => {
             poll_id: NewPoll._id,
             selected_options: initialOptions
         })
-
-
 
 
         res.json({ PollId: NewPoll._id })
@@ -154,7 +155,7 @@ app.post('/vote', async (req, res) => {
 
             // If no document was updated, it means the IP has already voted
             if (!updatedResult) {
-                return res.status(400).json({ error: 'You have already voted' });
+                return res.json({ error: 'You have already voted!' });
             }
         }
 
