@@ -7,12 +7,12 @@ import VibeNavbar from './Pages/Header/VibeNavbar';
 
 function App() {
 
+
   return (
     <>
 
       <Router>
         <Routes>
-
           <Route element={<VibeNavbar />}>
             <Route path="/create" element={<CreatePoll />} />
             <Route path="/poll/:poll_id" element={<SharePoll />} />

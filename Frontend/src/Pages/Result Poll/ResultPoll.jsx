@@ -30,6 +30,8 @@ const ResultPoll = () => {
   }
 
 
+ 
+
   // Convert Result object to ResultSlider format
   const convertResultToSliderFormat = (result) => {
     const totalVotes = Object.values(result).reduce((acc, value) => acc + value, 0);

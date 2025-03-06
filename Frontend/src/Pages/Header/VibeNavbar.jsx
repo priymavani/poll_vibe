@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Link, Outlet } from "react-router-dom";
 import { Menu, X } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
+
 
 const VibeNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,7 +30,7 @@ const VibeNavbar = () => {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className='hidden md:flex space-x-6'>
+                    <div className='hidden md:flex space-x-6 items-center'>
                         {navLinks.map((link) => (
                             <Link
                                 key={link.path}
@@ -38,6 +40,26 @@ const VibeNavbar = () => {
                                 {link.name}
                             </Link>
                         ))}
+                        <header className="flex items-center justify-end p-4 ">
+                            <SignedOut>
+                                <SignInButton
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300 ease-in-out flex items-center space-x-2"
+                                >
+                                    <span>Sign In</span>
+                                </SignInButton>
+                            </SignedOut>
+                            <SignedIn>
+                                <UserButton
+                                    appearance={{
+                                        elements: {
+                                            userButtonAvatarBox: "w-10 h-10 ring-2 ring-blue-500 ring-offset-2",
+                                            userButtonPopoverCard: "shadow-xl border border-gray-100 rounded-lg",
+                                            userButtonTrigger: "hover:bg-gray-100 rounded-full p-1 transition-colors"
+                                        }
+                                    }}
+                                />
+                            </SignedIn>
+                        </header>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -68,6 +90,8 @@ const VibeNavbar = () => {
                         </div>
                     </div>
                 )}
+
+
             </nav>
 
             {/* Content Area with Top Padding */}
