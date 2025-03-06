@@ -33,14 +33,14 @@ connectDB();
 // Create a new poll
 app.post('/poll', async (req, res) => {
 
-    const { poll_details, Created_by } = req.body;
+    const { poll_details, Created_by, endDate, poll_settings } = req.body;
 
-    if (!poll_details || !Created_by || !poll_details.poll_options) {
+    if (!poll_details || !Created_by || !poll_details.poll_options || !endDate || !poll_settings) {
         return res.status(400).json({ error: 'poll_details and Created_by are required, and poll_details must contain poll_options' });
     }
 
     try {
-        const NewPoll = new PollDetail({ poll_details, Created_by });
+        const NewPoll = new PollDetail({ endDate, poll_details, poll_settings, Created_by });
         await NewPoll.save();
 
 
@@ -85,7 +85,9 @@ app.get('/poll/:poll_id', async (req, res) => {
         }
 
         const now = new Date();
-        const endDate = new Date(poll.endDate);
+        const endDate = new Date(findPoll.endDate);
+        console.log(new Date().toISOString());
+
 
         if (now > endDate) {
             // If endDate has passed, update poll_status to false
