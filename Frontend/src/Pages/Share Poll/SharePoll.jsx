@@ -10,6 +10,9 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { CheckCircle, Share2, BarChart2 } from "lucide-react";
 import { CircleAlert } from 'lucide-react';
 import ShareComponent from './ShareComponent'
+import { GenericCheckboxGroup } from '../../Generic_Components/GenericCheckboxGroup';
+import { Input } from "@/components/ui/input"
+import PollComment from './PollComment';
 
 
 
@@ -21,6 +24,13 @@ const SharePoll = () => {
   const [PostData, setPostData] = useState("")
 
   const [open, setOpen] = useState(false);
+
+
+  // State to manage selected items in  Multiple Selection
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // State for Participant Name
+  const [participantName, setparticipantName] = useState("");
 
 
   useEffect(() => {
@@ -37,6 +47,7 @@ const SharePoll = () => {
     try {
       const response = await axios.get(`http://localhost:8090/poll/${poll_id}`)
       setPollData(response.data.PollData)
+      console.log(response.data.PollData)
     } catch (err) {
       console.log("Error :", err.message)
     }
@@ -101,32 +112,48 @@ const SharePoll = () => {
       </div>
 
 
-      <div className='bg-[#111827] w-screen h-screen flex flex-col justify-start pt-72 items-center'>
+      <div className='bg-[#111827] w-full flex flex-col justify-start items-center h-fit overflow-hidden'>
 
 
-        <div className="bg-[#1F2937] max-md:min-w-8/9 md:w-xl p-5 rounded-lg border-t-3 border-[#8E51FF] ">
+        <div className="bg-[#1F2937] max-md:min-w-8/9 md:w-xl p-5 rounded-lg border-t-3 border-[#8E51FF] mt-16">
 
 
           <div>
             <h1 className='scroll-m-20 text-xl font-semibold tracking-tight text-white'>{PollData?.poll_details.poll_title}</h1>
-            <h1 className='scroll-m-20 text-xs font-extralight tracking-tight text-white'>By {PollData?.Created_by[0]}</h1>
+            <h1 className='scroll-m-20 text-xs font-extralight tracking-tight text-white'>By {PollData?.Created_by}</h1>
           </div>
 
+          {PollData?.poll_settings.requireParticipantName &&
+            (<div className='pt-5'>
+              <Label className="text-[#71717B] text-xs pb-1">Participant Name</Label>
+              <Input
+                type="text"
+                placeholder="Name is Required*"
+                className='p-3 text-white bg-[#2A3441] border-[#4e5155] text-sm w-2xs'
+                value={participantName}
+                onChange={(e) => setparticipantName(e.target.value)}
+              />
+            </div>)
+          }
 
-          <div className='my-8'>
 
 
-            <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
-              {PollData?.poll_details.poll_options.map((option, index) => (
-                <div key={option} className="flex items-center space-x-2 my-1">
-                  <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="text-white">
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+          <div className='my-5'>
 
+            {PollData?.poll_settings.allowMultipleSelection ?
+
+              (<GenericCheckboxGroup CheckboxData={PollData?.poll_details.poll_options} setSelectedItems={setSelectedItems} selectedItems={selectedItems} />)
+
+              : (<RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
+                {PollData?.poll_details.poll_options.map((option, index) => (
+                  <div key={option} className="flex items-center space-x-2 my-1">
+                    <RadioGroupItem value={option} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`} className="text-white">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>)}
 
           </div>
 
@@ -167,11 +194,21 @@ const SharePoll = () => {
 
         </div>
 
+
+        {/* Comment Component */}
+        {PollData?.poll_settings.allowComments &&
+          (<div className=' w-full mt-12'>
+            <PollComment pollid={poll_id} />
+          </div>)}
+
       </div >
 
-      <div className="absolute bottom-30 w-full z-50">
+      {/* <div className="absolute bottom-30 w-full z-50">
         <ShareComponent />
-      </div>
+      </div> */}
+
+
+
 
     </>
   )

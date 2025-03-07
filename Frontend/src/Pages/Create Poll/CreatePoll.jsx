@@ -7,9 +7,11 @@ import { Switch } from "@/components/ui/switch"
 import { X } from 'lucide-react';
 import { Plus } from 'lucide-react';
 import { PollTypeDropdown } from './PollTypeDropdown';
+import { GenericDropdown } from '../../Generic_Components/GenericDropdown';
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
 import ImagePoll from './ImagePoll'
+import { ChevronRight } from 'lucide-react';
 
 
 
@@ -31,10 +33,46 @@ const CreatePoll = () => {
     },
   ])
 
-
+  // State  for Poll Options Selection dropdown
   const [selectedValue, setSelectedValue] = useState("multiple-choice"); // Default value
 
+  // Pole Settings Dropdown => Result Visibility
+  const [ResultVisibilityValue, setResultVisibilityValue] = useState("Always Public"); // Default value
 
+
+  // Create a state object to manage the state of each switch
+  const [switchStates, setSwitchStates] = useState({
+    "allow-comments": false,
+    "One-Vote-Per-IP": false,
+    "Allow-Multiple-Option-Selection": false,
+    "Require-Participant-Name": false,
+    "Signin-to-Vote": false,
+    "Close-Poll-on-Scheduled-Time": false
+  });
+
+  const [dateTime, setDateTime] = useState("");
+  const [MoreSettings, setMoreSettings] = useState(false);
+
+  const PollSettings = [
+    { id: "One-Vote-Per-IP", label: "One Vote Per IP" },
+    { id: "Allow-Multiple-Option-Selection", label: "Allow Multiple Option Selection" },
+    { id: "Require-Participant-Name", label: "Require Participant Name" },
+  ];
+  const MorePollSettings = [
+    { id: "allow-comments", label: "Allow Comments" },
+    { id: "Signin-to-Vote", label: "Signin to Vote" },
+    // Result Visibility Dropdown
+    { id: "Close-Poll-on-Scheduled-Time", label: "Close Poll on Scheduled Time" },
+  ];
+
+  const handleToggle = (id) => {
+    setSwitchStates((prevStates) => ({
+      ...prevStates,
+      [id]: !prevStates[id],
+    }));
+  };
+
+  const DropdownOptions = ["Always Public", "Public after end Date", "Public after Vote", "Not Public"]
 
   const navigate = useNavigate();
 
@@ -42,11 +80,22 @@ const CreatePoll = () => {
   const CreatePoll = async () => {
 
     try {
+
+      // const Poll_End_Time = switchStates["Require-Participant-Name"] === "" ? false : switchStates["Require-Participant-Name"]
+
       const response = await axios.post("http://localhost:8090/poll", {
+        "endDate": dateTime === "" ? "null" : dateTime,
         "poll_details": {
           "poll_title": pollTitle,
           "poll_options": options.map((item) => item.value),
-          "oneVotePerIP": isChecked
+        },
+        "poll_settings": {
+          "oneVotePerIP": isChecked,
+          "allowMultipleSelection": switchStates["Allow-Multiple-Option-Selection"],
+          "requireParticipantName": switchStates["Require-Participant-Name"],
+          "allowComments": switchStates["allow-comments"],
+          "resultVisibility": ResultVisibilityValue,
+          "closePollOnScheduleTime": switchStates["Require-Participant-Name"] === "" ? false : switchStates["Require-Participant-Name"]
         },
         "Created_by": "67c1b8030a9d81fad20caa0e"
       })
@@ -99,13 +148,12 @@ const CreatePoll = () => {
   return (
     <div className='bg-[#111827] w-screen h-screen flex flex-col justify-center items-center overflow-hidden'>
 
-
       <div className='mb-8'>
         <h1 className='text-white text-2xl font-medium text-center'>Create a Vibe Poll</h1>
         <h1 className='text-xs font-extralight text-gray-400 text-center'>Complete the below fields to create your poll.</h1>
       </div>
 
-      <div className="bg-[#1F2937] max-md:min-w-8/9 md:w-xl p-5 rounded-lg border-t-3 border-[#8E51FF] ">
+      <div className="bg-[#1F2937] sm:w-xl max-sm:w-sm p-5 rounded-lg border-t-3 border-[#8E51FF] ">
 
         {/* Poll Title */}
         <div className='mb-8'>
@@ -130,7 +178,7 @@ const CreatePoll = () => {
         </div>
 
 
-        {selectedValue === "image-poll" ? (<ImagePoll/>) : (<div className='mb-8'>
+        {selectedValue === "image-poll" ? (<ImagePoll />) : (<div className='mb-8'>
           <Label className="text-white text-xs pb-1">Poll Options</Label>
           {
             options.map((item) => (
@@ -167,12 +215,99 @@ const CreatePoll = () => {
 
         <Label className="text-white text-xs pb-1">Poll Settings</Label>
 
-        <div className="flex items-center space-x-2 my-5">
-          <Switch id="airplane-mode" onChange={setIsChecked} checked={isChecked} />
-          <Label htmlFor="airplane-mode" className="text-white">One Vote Per IP</Label>
+        <div className='flex space-x-24 flex-wrap'>
+
+          {PollSettings.map((config) => (
+            <div key={config.id} className="flex items-center space-x-2 my-1.5">
+              <Switch
+                id={config.id}
+                onChange={() => handleToggle(config.id)} // Pass the specific switch ID
+                checked={switchStates[config.id]} // Use the state for this specific switch
+              />
+              <Label htmlFor={config.id} className="text-white">
+                {config.label}
+              </Label>
+            </div>
+          ))}
         </div>
 
-        <div className='my-3 bg-[#565758] h-[1px]'></div>
+
+
+        {/* More Settings Menu */}
+        <div className="space-y-2">
+          {/* More Settings Toggle */}
+          <Label
+            className="text-[#8E51FF] text-xs pb-1 pt-2 flex items-center cursor-pointer"
+            onClick={() => setMoreSettings((prev) => !prev)}
+          >
+            More Settings <ChevronRight size={15} className={`transition-transform ${MoreSettings ? "rotate-90" : ""}`} />
+          </Label>
+
+          {/* More Settings Content */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${MoreSettings ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+              }`}
+          >
+            {/* Result Visibility Dropdown */}
+            <div className="py-1">
+              <Label className="text-white text-xs pb-1">Result Visibility</Label>
+              <div className="flex items-center">
+                <GenericDropdown
+                  ResultVisibilityValue={ResultVisibilityValue}
+                  setResultVisibilityValue={setResultVisibilityValue}
+                  Data={DropdownOptions}
+                />
+              </div>
+            </div>
+
+            {/* More Poll Settings Switches */}
+            {MorePollSettings.map((config) => (
+              <div key={config.id} className="flex items-center space-x-2 my-2.5">
+                <Switch
+                  id={config.id}
+                  onChange={() => handleToggle(config.id)}
+                  checked={switchStates[config.id]}
+                />
+                <Label htmlFor={config.id} className="text-white">
+                  {config.label}
+                </Label>
+              </div>
+            ))}
+
+            {/* Date and Time Picker (Conditional) */}
+            {switchStates["Close-Poll-on-Scheduled-Time"] && (
+              <div className="max-w-xs bg-[#1F2937] rounded-lg shadow-lg mt-2">
+                <label htmlFor="datetime" className="block text-sm font-medium text-white mb-1">
+                  Select Date and Time
+                </label>
+                <input
+                  type="datetime-local"
+                  id="datetime"
+                  value={dateTime}
+                  onChange={(e) => setDateTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#374151] text-white border border-[#4B5563] rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+                {dateTime && (
+                  <p className="mt-3 text-sm text-gray-400">
+                    Selected Date and Time:{" "}
+                    <span className="font-semibold text-violet-500">
+                      {new Date(dateTime).toLocaleString()}
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+
+
+
+
+        {/* ------------ */}
+
+        <div className='my-3 bg-[#313b49] h-[1px]'></div>
 
 
         <div>

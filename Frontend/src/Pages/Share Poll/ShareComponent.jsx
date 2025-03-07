@@ -60,9 +60,6 @@ const ShareComponent = () => {
                     </div> */}
                 </div>
 
-
-
-
             </div>
 
         </>
