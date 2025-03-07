@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const pollSchema = mongoose.Schema({
 
     poll_status: { type: Boolean, required: true, default: true },
-    endDate: { type: Date }, // End date and time for the poll
+    endDate: { type: String }, // End date and time for the poll
 
     poll_details: {
         poll_title: { type: String, required: true },

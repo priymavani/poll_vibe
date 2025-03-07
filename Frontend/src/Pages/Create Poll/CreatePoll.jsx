@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch"
 import { X } from 'lucide-react';
 import { Plus } from 'lucide-react';
 import { PollTypeDropdown } from './PollTypeDropdown';
-import { GenericDropdown } from './GenericDropdown';
+import { GenericDropdown } from '../../Generic_Components/GenericDropdown';
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
 import ImagePoll from './ImagePoll'
@@ -84,7 +84,7 @@ const CreatePoll = () => {
       // const Poll_End_Time = switchStates["Require-Participant-Name"] === "" ? false : switchStates["Require-Participant-Name"]
 
       const response = await axios.post("http://localhost:8090/poll", {
-        "endDate": "2025-03-06T15:35:00.000Z",
+        "endDate": dateTime === "" ? "null" : dateTime,
         "poll_details": {
           "poll_title": pollTitle,
           "poll_options": options.map((item) => item.value),
