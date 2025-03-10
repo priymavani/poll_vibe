@@ -14,7 +14,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
-const PORT = 8090;
+const PORT = process.env.PORT || 4000;
 const connectDB = async () => {
     try {
         const conn = await mongoose.connect("mongodb://localhost:27017/", {
@@ -120,7 +120,8 @@ app.post('/vote', async (req, res) => {
     }
 
     // Convert VotePerIP to a boolean
-    const allowMultipleVotes = VotePerIP === "false" ? false : true;
+    // const allowMultipleVotes = VotePerIP === "false" ? false : true;
+    const allowMultipleVotes = VotePerIP;
 
 
     try {
@@ -219,6 +220,35 @@ app.post('/vote/comment', async (req, res) => {
     }
 
 })
+
+
+// Get Comments by Poll Id
+app.get('/vote/comment/:poll_id', async (req, res) => {
+
+    const { poll_id } = req.params;
+
+    if (!poll_id) {
+        return res.status(400).json({ error: 'poll_id not provided' });
+    }
+
+
+    try {
+        let getComment = await PollResult.findOne({ poll_id });
+
+        return res.status(200).json({
+            Status: "Success",
+            Comments: getComment.comments
+        })
+
+    } catch (err) {
+        console.error('Error in Getting Comment:', err);
+        return res.status(500).json({ error: 'An error occurred while getting your Comments' });
+    }
+
+})
+
+
+
 
 
 
