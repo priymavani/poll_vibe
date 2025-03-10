@@ -7,14 +7,12 @@ import cors from 'cors'
 import dotenv from 'dotenv';
 import { Webhook } from 'svix';
 import bodyParser from 'body-parser';
+import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
 
 
 dotenv.config();
 
 const app = express()
-
-// app.use(bodyParser.raw({ type: 'application/json' })); // Parse raw JSON for webhooks
-
 app.use(cors())
 
 const PORT = process.env.PORT || 4000;
@@ -37,10 +35,6 @@ connectDB();
 app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
     const payload = req.body.toString(); // Get raw payload as string
     const headers = req.headers; // Get headers for signature verification
-
-    console.log('Raw Payload:', payload);
-    console.log('Headers:', headers);
-
 
     // Initialize Webhook with your Clerk webhook secret
     const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
@@ -98,6 +92,22 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
 
 app.use(express.json());
 
+const clerkPubKey = process.env.CLERK_PUBLISHABLE_KEY;
+console.log(clerkPubKey)
+
+// Middleware to verify authentication
+const requireAuth = ClerkExpressRequireAuth();
+
+app.get('/', (req, res) => {
+    res.send('Welcome to the public route!');
+});
+
+app.get('/protected', requireAuth, (req, res) => {
+    // req.auth contains the authenticated user's details
+    const user = req.auth;
+    res.json({ message: 'You are authenticated!', user });
+});
+
 
 // Create a new poll
 app.post('/poll', async (req, res) => {
@@ -145,6 +155,8 @@ app.post('/poll', async (req, res) => {
 app.get('/poll/:poll_id', async (req, res) => {
 
     const { poll_id } = req.params;
+    const user = req.auth;
+
 
     try {
         const findPoll = await PollDetail.findById(poll_id)
@@ -166,7 +178,7 @@ app.get('/poll/:poll_id', async (req, res) => {
             return res.status(400).json({ error: 'This poll has ended.' });
         }
 
-        res.json({ PollData: findPoll })
+        res.json({ PollData: findPoll, user })
     } catch (err) {
         res.status(500).json({ Error: err.message })
     }
@@ -322,8 +334,7 @@ app.get('/vote/comment/:poll_id', async (req, res) => {
 
 
 // get Poll Result By poll_id
-app.get("/vote/result/:Poll_id", async (req, res) => {
-
+app.get("/vote/result/:Poll_id", requireAuth, async (req, res) => {
     const { Poll_id } = req.params;
 
     try {

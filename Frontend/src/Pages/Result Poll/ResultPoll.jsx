@@ -7,9 +7,13 @@ import axois from 'axios'
 import { useParams, Link } from "react-router-dom";
 import DynamicPieChart from './PiePollResult'
 import ResultSlider from './ResultSlider'
+import { useAuth } from '@clerk/clerk-react';
 
 
 const ResultPoll = () => {
+
+  const { getToken } = useAuth();
+
 
   const [Result, setResult] = useState();
   const [PollData, setPollData] = useState();
@@ -28,8 +32,6 @@ const ResultPoll = () => {
       value: obj[key]
     }));
   }
-
-
 
 
   // Convert Result object to ResultSlider format
@@ -62,7 +64,12 @@ const ResultPoll = () => {
   const GetPollResult = async () => {
 
     try {
-      const PollResult = await axois.get(`http://localhost:8008/vote/result/${poll_id}`)
+      const token = await getToken();
+      const PollResult = await axois.get(`http://localhost:8008/vote/result/${poll_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       setResult(PollResult.data.Result)
       const Piedata = convertObjectToArray(PollResult.data.Result)
       console.log(Piedata)
@@ -87,7 +94,12 @@ const ResultPoll = () => {
 
 
     try {
-      const response = await axois.get(`http://localhost:8008/poll/${poll_id}`)
+      const token = await getToken();
+      const response = await axois.get(`http://localhost:8008/poll/${poll_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       setPollData(response.data.PollData)
       console.log(response.data.PollData)
     } catch (err) {

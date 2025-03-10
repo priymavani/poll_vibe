@@ -57,6 +57,7 @@ const VibeNavbar = () => {
                                             userButtonTrigger: "hover:bg-gray-100 rounded-full p-1 transition-colors"
                                         }
                                     }}
+                                    
                                 />
                             </SignedIn>
                         </header>
