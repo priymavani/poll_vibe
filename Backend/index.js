@@ -39,6 +39,10 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
     const payload = req.body.toString(); // Get raw payload as string
     const headers = req.headers; // Get headers for signature verification
 
+    console.log('Raw Payload:', payload);
+    console.log('Headers:', headers);
+
+
     // Initialize Webhook with your Clerk webhook secret
     const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
@@ -49,6 +53,7 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
         // Handle the event
         switch (evt.type) {
             case 'user.created':
+                console.log('User created:', evt.data);
                 // Create a new user in MongoDB
                 const newUser = new User({
                     clerkUserId: evt.data.id,
@@ -62,6 +67,7 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
                 break;
 
             case 'user.updated':
+                console.log('User updated:', evt.data);
                 // Update an existing user in MongoDB
                 await User.findOneAndUpdate(
                     { clerkUserId: evt.data.id },
