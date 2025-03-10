@@ -15,7 +15,6 @@ const app = express()
 
 // app.use(bodyParser.raw({ type: 'application/json' })); // Parse raw JSON for webhooks
 
-// app.use(express.json());
 app.use(cors())
 
 const PORT = process.env.PORT || 4000;
@@ -95,6 +94,9 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
         res.status(400).json({ success: false, error: err.message });
     }
 });
+
+
+app.use(express.json());
 
 
 // Create a new poll
