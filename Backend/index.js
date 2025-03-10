@@ -15,7 +15,7 @@ const app = express()
 
 // app.use(bodyParser.raw({ type: 'application/json' })); // Parse raw JSON for webhooks
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors())
 
 const PORT = process.env.PORT || 4000;
@@ -68,6 +68,7 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
 
             case 'user.updated':
                 console.log('User updated:', evt.data);
+
                 // Update an existing user in MongoDB
                 await User.findOneAndUpdate(
                     { clerkUserId: evt.data.id },
