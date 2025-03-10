@@ -14,10 +14,11 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
+console.log(process.env.PORT)
 const PORT = process.env.PORT || 4000;
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect("mongodb://localhost:27017/", {
+        const conn = await mongoose.connect(process.env.MONGO_URI, {
             dbName: "Hello_Poll"
         });
         console.log(`MongoDB Connected: ${conn.connection.host}`);
