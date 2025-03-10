@@ -52,11 +52,12 @@ const VibeNavbar = () => {
                                 <UserButton
                                     appearance={{
                                         elements: {
-                                            userButtonAvatarBox: "w-10 h-10 ring-2 ring-blue-500 ring-offset-2",
+                                            userButtonAvatarBox: "w-8 h-8 ring-2 ring-blue-500 ring-offset-2",
                                             userButtonPopoverCard: "shadow-xl border border-gray-100 rounded-lg",
                                             userButtonTrigger: "hover:bg-gray-100 rounded-full p-1 transition-colors"
                                         }
                                     }}
+                                    
                                 />
                             </SignedIn>
                         </header>
@@ -95,9 +96,9 @@ const VibeNavbar = () => {
             </nav>
 
             {/* Content Area with Top Padding */}
-            {/* <div className='pt-14'> */}
-            <Outlet />
-            {/* </div> */}
+            <div className='pt-14'>
+                <Outlet />
+            </div>
 
 
         </>

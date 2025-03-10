@@ -7,16 +7,11 @@ import mongoose from "mongoose";
 const userSchema = mongoose.Schema({
 
 
-    Name: {
-        type: String,
-        required: true
-    },
-
-    Email: {
-        type: String,
-        required: true
-    },
-
+    clerkUserId: { type: String, unique: true, required: true },
+    firstName: String,
+    lastName: String,
+    email: String,
+    profileImage: String,
     UserPoll: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Poll'

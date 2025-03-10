@@ -5,20 +5,21 @@ import express from 'express'
 import mongoose from "mongoose"
 import cors from 'cors'
 import dotenv from 'dotenv';
+import { Webhook } from 'svix';
+import bodyParser from 'body-parser';
+import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
+
 
 dotenv.config();
 
 const app = express()
-
-
-app.use(express.json())
 app.use(cors())
 
-const PORT = 8090;
+const PORT = process.env.PORT || 4000;
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect("mongodb://localhost:27017/", {
-            dbName: "Hello_Poll"
+        const conn = await mongoose.connect(process.env.MONGO_URI, {
+            dbName: "PollVibe"
         });
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
@@ -28,6 +29,84 @@ const connectDB = async () => {
 
 connectDB();
 
+
+
+// Webhook endpoint with bodyParser.raw() middleware
+app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
+    const payload = req.body.toString(); // Get raw payload as string
+    const headers = req.headers; // Get headers for signature verification
+
+    // Initialize Webhook with your Clerk webhook secret
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+
+    try {
+        // Verify the webhook payload
+        const evt = wh.verify(payload, headers);
+
+        // Handle the event
+        switch (evt.type) {
+            case 'user.created':
+                console.log('User created:', evt.data);
+                // Create a new user in MongoDB
+                const newUser = new User({
+                    clerkUserId: evt.data.id,
+                    firstName: evt.data.first_name,
+                    lastName: evt.data.last_name,
+                    email: evt.data.email_addresses[0].email_address,
+                    profileImage: evt.data.profile_image_url,
+                });
+                await newUser.save();
+                console.log('User created in MongoDB:', newUser);
+                break;
+
+            case 'user.updated':
+                console.log('User updated:', evt.data);
+
+                // Update an existing user in MongoDB
+                await User.findOneAndUpdate(
+                    { clerkUserId: evt.data.id },
+                    {
+                        firstName: evt.data.first_name,
+                        lastName: evt.data.last_name,
+                        email: evt.data.email_addresses[0].email_address,
+                        profileImage: evt.data.profile_image_url,
+                    },
+                    { new: true } // Return the updated document
+                );
+                console.log('User updated in MongoDB');
+                break;
+
+            default:
+                console.log('Unhandled event type:', evt.type);
+        }
+
+        // Respond with success
+        res.status(200).json({ success: true });
+    } catch (err) {
+        // Handle errors (e.g., invalid signature, database errors)
+        console.error('Webhook verification failed:', err);
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
+
+app.use(express.json());
+
+const clerkPubKey = process.env.CLERK_PUBLISHABLE_KEY;
+console.log(clerkPubKey)
+
+// Middleware to verify authentication
+const requireAuth = ClerkExpressRequireAuth();
+
+app.get('/', (req, res) => {
+    res.send('Welcome to the public route!');
+});
+
+app.get('/protected', requireAuth, (req, res) => {
+    // req.auth contains the authenticated user's details
+    const user = req.auth;
+    res.json({ message: 'You are authenticated!', user });
+});
 
 
 // Create a new poll
@@ -76,6 +155,8 @@ app.post('/poll', async (req, res) => {
 app.get('/poll/:poll_id', async (req, res) => {
 
     const { poll_id } = req.params;
+    const user = req.auth;
+
 
     try {
         const findPoll = await PollDetail.findById(poll_id)
@@ -97,7 +178,7 @@ app.get('/poll/:poll_id', async (req, res) => {
             return res.status(400).json({ error: 'This poll has ended.' });
         }
 
-        res.json({ PollData: findPoll })
+        res.json({ PollData: findPoll, user })
     } catch (err) {
         res.status(500).json({ Error: err.message })
     }
@@ -120,7 +201,8 @@ app.post('/vote', async (req, res) => {
     }
 
     // Convert VotePerIP to a boolean
-    const allowMultipleVotes = VotePerIP === "false" ? false : true;
+    // const allowMultipleVotes = VotePerIP === "false" ? false : true;
+    const allowMultipleVotes = VotePerIP;
 
 
     try {
@@ -221,10 +303,38 @@ app.post('/vote/comment', async (req, res) => {
 })
 
 
+// Get Comments by Poll Id
+app.get('/vote/comment/:poll_id', async (req, res) => {
+
+    const { poll_id } = req.params;
+
+    if (!poll_id) {
+        return res.status(400).json({ error: 'poll_id not provided' });
+    }
+
+
+    try {
+        let getComment = await PollResult.findOne({ poll_id });
+
+        return res.status(200).json({
+            Status: "Success",
+            Comments: getComment.comments
+        })
+
+    } catch (err) {
+        console.error('Error in Getting Comment:', err);
+        return res.status(500).json({ error: 'An error occurred while getting your Comments' });
+    }
+
+})
+
+
+
+
+
 
 // get Poll Result By poll_id
-app.get("/vote/result/:Poll_id", async (req, res) => {
-
+app.get("/vote/result/:Poll_id", requireAuth, async (req, res) => {
     const { Poll_id } = req.params;
 
     try {

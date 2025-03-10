@@ -18,7 +18,6 @@ import { ChevronRight } from 'lucide-react';
 const CreatePoll = () => {
 
   const [pollTitle, setpollTitle] = useState("")
-  const [isChecked, setIsChecked] = useState(true)
 
   const [options, setOptions] = useState([
     {
@@ -43,7 +42,7 @@ const CreatePoll = () => {
   // Create a state object to manage the state of each switch
   const [switchStates, setSwitchStates] = useState({
     "allow-comments": false,
-    "One-Vote-Per-IP": false,
+    "One-Vote-Per-IP": true,
     "Allow-Multiple-Option-Selection": false,
     "Require-Participant-Name": false,
     "Signin-to-Vote": false,
@@ -83,14 +82,14 @@ const CreatePoll = () => {
 
       // const Poll_End_Time = switchStates["Require-Participant-Name"] === "" ? false : switchStates["Require-Participant-Name"]
 
-      const response = await axios.post("http://localhost:8090/poll", {
+      const response = await axios.post("http://localhost:8008/poll", {
         "endDate": dateTime === "" ? "null" : dateTime,
         "poll_details": {
           "poll_title": pollTitle,
           "poll_options": options.map((item) => item.value),
         },
         "poll_settings": {
-          "oneVotePerIP": isChecked,
+          "oneVotePerIP": switchStates["One-Vote-Per-IP"],
           "allowMultipleSelection": switchStates["Allow-Multiple-Option-Selection"],
           "requireParticipantName": switchStates["Require-Participant-Name"],
           "allowComments": switchStates["allow-comments"],
@@ -146,7 +145,7 @@ const CreatePoll = () => {
   }
 
   return (
-    <div className='bg-[#111827] w-screen h-screen flex flex-col justify-center items-center overflow-hidden'>
+    <div className='bg-[#111827] w-full h-screen flex flex-col justify-center items-center overflow-hidden'>
 
       <div className='mb-8'>
         <h1 className='text-white text-2xl font-medium text-center'>Create a Vibe Poll</h1>

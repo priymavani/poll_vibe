@@ -4,6 +4,7 @@ import SharePoll from './Pages/Share Poll/SharePoll'
 import ResultPoll from './Pages/Result Poll/ResultPoll'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import VibeNavbar from './Pages/Header/VibeNavbar';
+import Protected from './Pages/Protected';
 
 function App() {
 
@@ -12,13 +13,17 @@ function App() {
     <>
 
       <Router>
+        <VibeNavbar />
         <Routes>
-          <Route>
-            {/* <Route element={<VibeNavbar />}> */}
-            <Route path="/create" element={<CreatePoll />} />
-            <Route path="/poll/:poll_id" element={<SharePoll />} />
-            <Route path="/poll/:poll_id/result" element={<ResultPoll />} />
-          </Route>
+          {/* <Route element={<VibeNavbar />} /> */}
+          <Route path="/" element={<Protected />} />
+          <Route path="poll/create" element={
+            <Protected>
+              <CreatePoll />
+            </Protected>
+          } />
+          <Route path="/poll/:poll_id" element={<SharePoll />} />
+          <Route path="/poll/:poll_id/result" element={<ResultPoll />} />
 
         </Routes>
       </Router>
