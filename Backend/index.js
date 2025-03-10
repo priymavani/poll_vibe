@@ -30,6 +30,51 @@ connectDB();
 
 
 
+// Webhook endpoint
+app.post('/api/webhook', async (req, res) => {
+    const payload = req.body.toString();
+    const headers = req.headers;
+
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+    try {
+        const evt = wh.verify(payload, headers);
+
+        switch (evt.type) {
+            case 'user.created':
+                const newUser = new User({
+                    clerkUserId: evt.data.id,
+                    firstName: evt.data.first_name,
+                    lastName: evt.data.last_name,
+                    email: evt.data.email_addresses[0].email_address,
+                    profileImage: evt.data.profile_image_url,
+                });
+                await newUser.save();
+                console.log('User created in MongoDB:', newUser);
+                break;
+
+            case 'user.updated':
+                await User.findOneAndUpdate(
+                    { clerkUserId: evt.data.id },
+                    {
+                        firstName: evt.data.first_name,
+                        lastName: evt.data.last_name,
+                        email: evt.data.email_addresses[0].email_address,
+                        profileImage: evt.data.profile_image_url,
+                    }
+                );
+                console.log('User updated in MongoDB');
+                break;
+        }
+
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error('Webhook verification failed:', err);
+        res.status(400).json({ success: false });
+    }
+});
+
+
+
 // Create a new poll
 app.post('/poll', async (req, res) => {
 
