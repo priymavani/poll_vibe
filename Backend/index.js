@@ -5,13 +5,15 @@ import express from 'express'
 import mongoose from "mongoose"
 import cors from 'cors'
 import dotenv from 'dotenv';
-import { Webhook } from 'svix'; 
+import { Webhook } from 'svix';
+import bodyParser from 'body-parser';
 
 
 dotenv.config();
 
 const app = express()
 
+app.use(bodyParser.raw({ type: 'application/json' })); // Parse raw JSON for webhooks
 
 app.use(express.json())
 app.use(cors())
@@ -34,15 +36,20 @@ connectDB();
 
 // Webhook endpoint
 app.post('/api/webhook', async (req, res) => {
-    const payload = req.body.toString();
-    const headers = req.headers;
+    const payload = req.body.toString(); // Get raw payload as string
+    const headers = req.headers; // Get headers for signature verification
 
+    // Initialize Webhook with your Clerk webhook secret
     const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+
     try {
+        // Verify the webhook payload
         const evt = wh.verify(payload, headers);
 
+        // Handle the event
         switch (evt.type) {
             case 'user.created':
+                // Create a new user in MongoDB
                 const newUser = new User({
                     clerkUserId: evt.data.id,
                     firstName: evt.data.first_name,
@@ -55,6 +62,7 @@ app.post('/api/webhook', async (req, res) => {
                 break;
 
             case 'user.updated':
+                // Update an existing user in MongoDB
                 await User.findOneAndUpdate(
                     { clerkUserId: evt.data.id },
                     {
@@ -62,19 +70,24 @@ app.post('/api/webhook', async (req, res) => {
                         lastName: evt.data.last_name,
                         email: evt.data.email_addresses[0].email_address,
                         profileImage: evt.data.profile_image_url,
-                    }
+                    },
+                    { new: true } // Return the updated document
                 );
                 console.log('User updated in MongoDB');
                 break;
+
+            default:
+                console.log('Unhandled event type:', evt.type);
         }
 
+        // Respond with success
         res.status(200).json({ success: true });
     } catch (err) {
+        // Handle errors (e.g., invalid signature, database errors)
         console.error('Webhook verification failed:', err);
-        res.status(400).json({ success: false });
+        res.status(400).json({ success: false, error: err.message });
     }
 });
-
 
 
 // Create a new poll
