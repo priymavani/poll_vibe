@@ -12,13 +12,12 @@ function App() {
     <>
 
       <Router>
+        <VibeNavbar />
         <Routes>
-          <Route>
-            {/* <Route element={<VibeNavbar />}> */}
-            <Route path="/create" element={<CreatePoll />} />
-            <Route path="/poll/:poll_id" element={<SharePoll />} />
-            <Route path="/poll/:poll_id/result" element={<ResultPoll />} />
-          </Route>
+          {/* <Route element={<VibeNavbar />} /> */}
+          <Route path="poll/create" element={<CreatePoll />} />
+          <Route path="/poll/:poll_id" element={<SharePoll />} />
+          <Route path="/poll/:poll_id/result" element={<ResultPoll />} />
 
         </Routes>
       </Router>

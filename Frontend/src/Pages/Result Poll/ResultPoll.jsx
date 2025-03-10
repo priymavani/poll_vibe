@@ -30,7 +30,7 @@ const ResultPoll = () => {
   }
 
 
- 
+
 
   // Convert Result object to ResultSlider format
   const convertResultToSliderFormat = (result) => {
@@ -62,7 +62,7 @@ const ResultPoll = () => {
   const GetPollResult = async () => {
 
     try {
-      const PollResult = await axois.get(`http://localhost:8090/vote/result/${poll_id}`)
+      const PollResult = await axois.get(`http://localhost:8008/vote/result/${poll_id}`)
       setResult(PollResult.data.Result)
       const Piedata = convertObjectToArray(PollResult.data.Result)
       console.log(Piedata)
@@ -87,7 +87,7 @@ const ResultPoll = () => {
 
 
     try {
-      const response = await axois.get(`http://localhost:8090/poll/${poll_id}`)
+      const response = await axois.get(`http://localhost:8008/poll/${poll_id}`)
       setPollData(response.data.PollData)
       console.log(response.data.PollData)
     } catch (err) {
@@ -102,7 +102,7 @@ const ResultPoll = () => {
   }, [poll_id])
 
   return (
-    <div className='bg-[#111827] w-screen h-screen flex flex-col justify-center items-center'>
+    <div className='bg-[#111827] w-full h-screen flex flex-col justify-center items-center'>
 
 
       <div className="bg-[#1F2937] p-5 rounded-lg border-t-3 border-[#8E51FF]  max-[464px]:w-[330px] md:w-3xl">

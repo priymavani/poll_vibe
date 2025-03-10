@@ -20,6 +20,8 @@ const SharePoll = () => {
 
 
   const [PollData, setPollData] = useState();
+
+  // State to manage selected items in  single Selection
   const [selectedOption, setSelectedOption] = useState("");
   const [PostData, setPostData] = useState("")
 
@@ -30,8 +32,7 @@ const SharePoll = () => {
   const [selectedItems, setSelectedItems] = useState([]);
 
   // State for Participant Name
-  const [participantName, setparticipantName] = useState("");
-
+  const [participantName, setparticipantName] = useState(undefined);
 
   useEffect(() => {
     if (PostData === "Vote Submitted Successfully!") {
@@ -45,7 +46,7 @@ const SharePoll = () => {
   const getPollData = async () => {
 
     try {
-      const response = await axios.get(`http://localhost:8090/poll/${poll_id}`)
+      const response = await axios.get(`http://localhost:8008/poll/${poll_id}`)
       setPollData(response.data.PollData)
       console.log(response.data.PollData)
     } catch (err) {
@@ -60,10 +61,13 @@ const SharePoll = () => {
 
   const PostPollVote = async () => {
     try {
-      const PostVote = await axios.post("http://localhost:8090/vote", {
+      const PostVote = await axios.post("http://localhost:8008/vote", {
         poll_id: PollData?._id,
-        selected_option: selectedOption,
-        VotePerIP: PollData?.poll_details?.oneVotePerIP,
+        selected_option: PollData?.poll_settings?.allowMultipleSelection
+          ? selectedItems // Use selectedItems if multiple selections are allowed
+          : [selectedOption], // Use selectedOption if only one selection is allowed
+        VotePerIP: PollData?.poll_settings?.oneVotePerIP,
+        ParticipantName: participantName
       });
 
       setPostData(PostVote.data?.error || "Vote Submitted Successfully!"); // Handle missing error field
@@ -73,6 +77,17 @@ const SharePoll = () => {
     }
   };
 
+  const DisableVoteButton = () => {
+    const isSelectionEmpty = PollData?.poll_settings?.allowMultipleSelection
+      ? selectedItems.length === 0
+      : !selectedOption;
+
+    if (PollData?.poll_settings?.requireParticipantName) {
+      return !participantName || isSelectionEmpty;
+    }
+
+    return isSelectionEmpty;
+  };
 
   useEffect(() => {
     getPollData()
@@ -112,8 +127,10 @@ const SharePoll = () => {
       </div>
 
 
-      <div className='bg-[#111827] w-full flex flex-col justify-start items-center h-fit overflow-hidden'>
-
+      <div
+        className={`bg-[#111827] w-full flex flex-col justify-start items-center ${PollData?.poll_settings?.allowComments ? "h-fit" : "h-screen"
+          }`}
+      >
 
         <div className="bg-[#1F2937] max-md:min-w-8/9 md:w-xl p-5 rounded-lg border-t-3 border-[#8E51FF] mt-16">
 
@@ -165,8 +182,12 @@ const SharePoll = () => {
             <div className=''>
 
               <Button
-                className={`bg-[#8E51FF] hover:bg-[#8e51ffbb] w-fit my-2 ${selectedOption ? "cursor-pointer" : "cursor-not-allowed"}`}
-                disabled={!selectedOption}
+                className={`bg-[#8E51FF] hover:bg-[#8e51ffbb] w-fit my-2 ${(PollData?.poll_settings?.allowMultipleSelection ? selectedItems.length > 0 : selectedOption)
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+                  }`}
+
+                disabled={DisableVoteButton()}
                 onClick={HandleVote}
               >
                 Vote
