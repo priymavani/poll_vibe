@@ -64,8 +64,8 @@ const SharePoll = () => {
       const PostVote = await axios.post("http://localhost:8008/vote", {
         poll_id: PollData?._id,
         selected_option: PollData?.poll_settings?.allowMultipleSelection
-          ? selectedItems // Use selectedItems if multiple selections are allowed
-          : [selectedOption], // Use selectedOption if only one selection is allowed
+          ? selectedItems.map(item => item.text) // Map to text values for multiple selections
+          : [selectedOption], // Single selection is already text value
         VotePerIP: PollData?.poll_settings?.oneVotePerIP,
         ParticipantName: participantName
       });
@@ -156,22 +156,62 @@ const SharePoll = () => {
 
 
           <div className='my-5'>
-
-            {PollData?.poll_settings.allowMultipleSelection ?
-
-              (<GenericCheckboxGroup CheckboxData={PollData?.poll_details.poll_options} setSelectedItems={setSelectedItems} selectedItems={selectedItems} />)
-
-              : (<RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
+            {PollData?.poll_settings.allowMultipleSelection ? (
+              <div className="space-y-2">
                 {PollData?.poll_details.poll_options.map((option, index) => (
-                  <div key={option} className="flex items-center space-x-2 my-1">
-                    <RadioGroupItem value={option} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`} className="text-white">
-                      {option}
+                  <div key={index} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-[#2A3441]/50">
+                    <input
+                      type="checkbox"
+                      id={`checkbox-${index}`}
+                      checked={selectedItems.some(item => item.text === option.text)}
+                      onChange={() => {
+                        setSelectedItems(prev => {
+                          const isSelected = prev.some(item => item.text === option.text);
+                          if (isSelected) {
+                            return prev.filter(item => item.text !== option.text);
+                          } else {
+                            return [...prev, option];
+                          }
+                        });
+                      }}
+                      className="w-4 h-4 rounded border-gray-400 text-[#8E51FF] focus:ring-[#8E51FF]"
+                    />
+                    <Label htmlFor={`checkbox-${index}`} className="flex flex-col gap-2 cursor-pointer">
+                      <span className="text-white">{option.text}</span>
+                      {option.imageUrl && (
+                        <div className="w-40 h-40 rounded-lg overflow-hidden bg-[#2A3441]">
+                          <img 
+                            src={option.imageUrl} 
+                            alt={option.text} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
                     </Label>
                   </div>
                 ))}
-              </RadioGroup>)}
-
+              </div>
+            ) : (
+              <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
+                {PollData?.poll_details.poll_options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-[#2A3441]/50">
+                    <RadioGroupItem value={option.text} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`} className="flex flex-col gap-2 cursor-pointer">
+                      <span className="text-white">{option.text}</span>
+                      {option.imageUrl && (
+                        <div className="w-40 h-40 rounded-lg overflow-hidden bg-[#2A3441]">
+                          <img 
+                            src={option.imageUrl} 
+                            alt={option.text} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
           </div>
 
 
