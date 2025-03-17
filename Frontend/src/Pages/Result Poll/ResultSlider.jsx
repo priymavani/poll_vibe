@@ -26,31 +26,59 @@ const COLOR_THEMES = {
 
 const ResultSlider = ({
   polls,
-  theme = 'default'
+  theme = 'default',
+  showImages = false
 }) => {
-  const totalVotes = polls?.reduce((sum, poll) => sum + poll.votes, 0);
+  const totalVotes = polls?.reduce((sum, poll) => sum + poll.votes, 0) || 0;
   const themeColors = COLOR_THEMES[theme] || COLOR_THEMES.default;
+
+  if (!polls || polls.length === 0) {
+    return <div className="text-white text-center">No poll data available</div>;
+  }
+
+  console.log('ResultSlider - showImages:', showImages);
+  console.log('ResultSlider - polls:', polls);
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-4 p-3 sm:p-4 bg-[#8e51ff34] rounded-lg shadow-md">
-      {polls?.map((poll, index) => {
-        const themeColor = themeColors.options[index] || themeColors.options[0];
+      {polls.map((poll, index) => {
+        const themeColor = themeColors.options[index % themeColors.options.length];
+        const hasImage = showImages && poll.imageUrl;
+        
+        console.log(`Option ${index} - hasImage:`, hasImage, 'imageUrl:', poll.imageUrl);
+        
         return (
           <div key={index} className="space-y-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <span className={`text-sm font-medium ${themeColor.textColor} flex-grow`}>
-                {poll.label}
-              </span>
+              <div className="flex items-center gap-2 flex-grow">
+                {showImages && poll.imageUrl && (
+                  <div className="w-24 h-24 rounded-md overflow-hidden flex-shrink-0 bg-[#2A3441]">
+                    <img
+                      src={poll.imageUrl}
+                      alt={poll.label}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.warn('Failed to load image:', poll.imageUrl);
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                <span className={`text-sm font-medium ${themeColor.textColor}`}>
+                  {poll.label}
+                </span>
+              </div>
               <Badge variant="secondary" className="self-start sm:self-auto">
                 {poll.votes} votes
               </Badge>
             </div>
             <div className="flex items-center space-x-2">
-              <Progress
-                value={poll.percentage}
-                className={`h-2 flex-grow ${themeColor.color}`}
-                indicatorClassName={themeColor.color}
-              />
+              <div className={`flex-grow ${themeColor.color} rounded-full overflow-hidden`}>
+                <Progress
+                  value={poll.percentage}
+                  className="h-2"
+                />
+              </div>
               <div className="text-sm text-muted-foreground w-12 text-right">
                 {poll.percentage}%
               </div>
