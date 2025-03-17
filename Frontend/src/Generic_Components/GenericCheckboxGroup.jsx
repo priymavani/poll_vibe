@@ -32,23 +32,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 //     },
 // ];
 
-export function GenericCheckboxGroup({ CheckboxData,selectedItems,setSelectedItems }) {
-
-
+export function GenericCheckboxGroup({ CheckboxData, selectedItems, setSelectedItems }) {
     let MappingData = CheckboxData?.map((item) => {
         return {
-            id: item,
-            label: item,
+            id: item.text,
+            label: item.text,
         }
-    })
-
+    });
 
     // Handle checkbox change
     const handleCheckboxChange = (itemId) => {
+        const selectedOption = CheckboxData.find(item => item.text === itemId);
         setSelectedItems((prevSelectedItems) =>
-            prevSelectedItems.includes(itemId)
-                ? prevSelectedItems.filter((id) => id !== itemId) // Remove item if already selected
-                : [...prevSelectedItems, itemId] // Add item if not selected
+            prevSelectedItems.includes(selectedOption)
+                ? prevSelectedItems.filter((item) => item.text !== itemId) // Remove item if already selected
+                : [...prevSelectedItems, selectedOption] // Add item if not selected
         );
     };
 
@@ -83,18 +81,16 @@ export function GenericCheckboxGroup({ CheckboxData,selectedItems,setSelectedIte
             <div className="space-y-3">
                 {MappingData?.map((item) => (
                     <div key={item.id} className="flex items-center space-x-3">
-                        {/* Custom Checkbox */}
                         <label htmlFor={item.id} className="flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
                                 id={item.id}
-                                checked={selectedItems.includes(item.id)}
+                                checked={selectedItems.some(selected => selected.text === item.id)}
                                 onChange={() => handleCheckboxChange(item.id)}
                                 className="appearance-none w-5 h-5 border-2 border-[#8E51FF] rounded-md checked:bg-[#8E51FF] checked:border-[#8E51FF] focus:ring-2 focus:ring-[#8E51FF] focus:ring-offset-2 focus:ring-offset-[#1F2937] transition-all"
                             />
-                            {/* Custom Checkmark */}
                             <span className="absolute w-5 h-5 flex items-center justify-center">
-                                {selectedItems.includes(item.id) && (
+                                {selectedItems.some(selected => selected.text === item.id) && (
                                     <svg
                                         className="w-3 h-3 text-white"
                                         fill="none"
@@ -112,7 +108,6 @@ export function GenericCheckboxGroup({ CheckboxData,selectedItems,setSelectedIte
                                 )}
                             </span>
                         </label>
-                        {/* Label */}
                         <label htmlFor={item.id} className="text-sm font-normal text-white">
                             {item.label}
                         </label>
