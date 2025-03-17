@@ -22,6 +22,7 @@ const ResultPoll = () => {
   const [pollResults, setPollResults] = useState();
 
   const [SliderResults, setSliderResults] = useState();
+  const [pollOptions, setPollOptions] = useState(null);
 
 
 
@@ -34,15 +35,39 @@ const ResultPoll = () => {
   }
 
 
-  // Convert Result object to ResultSlider format
-  const convertResultToSliderFormat = (result) => {
+  // Convert Result object to ResultSlider format with image support
+  const convertResultToSliderFormat = (result, pollOptions) => {
+    if (!result || !pollOptions) {
+      console.warn('Missing result or pollOptions:', { result, pollOptions });
+      return [];
+    }
+    
     const totalVotes = Object.values(result).reduce((acc, value) => acc + value, 0);
 
-    return Object.keys(result).map((key) => ({
-      label: key, // Use the key as the label (e.g., "Yes", "No", "Maybe")
-      votes: result[key], // Use the value as the number of votes
-      percentage: totalVotes === 0 ? 0 : Math.round((result[key] / totalVotes) * 100) // Calculate percentage
-    }));
+    // Log the structure of poll options for debugging
+    console.log('Processing poll options:', JSON.stringify(pollOptions, null, 2));
+
+    return Object.keys(result).map((key) => {
+      // Find the corresponding poll option to get the image URL
+      const pollOption = pollOptions.find(option => {
+        const optionMatches = option.text === key;
+        if (optionMatches) {
+          console.log('Found matching option:', option);
+        }
+        return optionMatches;
+      });
+      
+      if (!pollOption) {
+        console.warn(`No matching poll option found for key: "${key}" in options:`, pollOptions);
+      }
+
+      return {
+        label: key,
+        votes: result[key],
+        percentage: totalVotes === 0 ? 0 : Math.round((result[key] / totalVotes) * 100),
+        imageUrl: pollOption?.imageUrl || null // Add image URL if available
+      };
+    });
   };
 
 
@@ -62,32 +87,67 @@ const ResultPoll = () => {
 
 
   const GetPollResult = async () => {
-
     try {
       const token = await getToken();
+      
+      // Get poll data first to ensure we have the options
+      const pollData = await axois.get(`http://localhost:8008/poll/${poll_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Log the complete poll data for debugging
+      console.log('Complete Poll Data:', pollData.data.PollData);
+      
+      const options = pollData.data.PollData?.poll_details?.poll_options;
+      setPollOptions(options);
+      
+      // Check if this is an image poll by looking for imageUrl in options
+      const hasImages = options?.some(option => option.imageUrl);
+      console.log('Has Images:', hasImages);
+      
+      if (!options) {
+        console.warn('No poll options found in poll data');
+      }
+      
+      setPollData({
+        ...pollData.data.PollData,
+        poll_details: {
+          ...pollData.data.PollData.poll_details,
+          poll_type: hasImages ? "image-poll" : "multiple-choice"
+        }
+      });
+      
+      // Then get the results
       const PollResult = await axois.get(`http://localhost:8008/vote/result/${poll_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      setResult(PollResult.data.Result)
-      const Piedata = convertObjectToArray(PollResult.data.Result)
-      console.log(Piedata)
-      setPollResults(Piedata)
-      console.log(pollResults)
-      console.log(PollResult.data.Result)
+      });
+      
+      // Log the complete results data for debugging
+      console.log('Complete Results Data:', PollResult.data);
+      
+      setResult(PollResult.data.Result);
+      const Piedata = convertObjectToArray(PollResult.data.Result);
+      setPollResults(Piedata);
 
-      const SliderData = convertResultToSliderFormat(PollResult.data.Result)
-      setSliderResults(SliderData)
-      console.log(SliderData)
-
-
-      let sum = Object.values(PollResult.data.Result).reduce((acc, value) => acc + value, 0)
-      setSum(sum)
+      // Create slider data with the poll options we already have
+      const SliderData = convertResultToSliderFormat(
+        PollResult.data.Result,
+        options
+      );
+      
+      setSliderResults(SliderData);
+      
+      let sum = Object.values(PollResult.data.Result).reduce((acc, value) => acc + value, 0);
+      setSum(sum);
     } catch (err) {
-      console.log("Error :", err.message)
+      console.error("Error in GetPollResult:", err);
+      console.error("Error details:", err.message);
     }
-  }
+  };
 
 
   const getPollData = async () => {
@@ -146,6 +206,7 @@ const ResultPoll = () => {
           <ResultSlider
             polls={SliderResults}
             theme="default"
+            showImages={Boolean(pollOptions?.some(option => option.imageUrl))}
           />
 
           {/* Pie Chart Component */}
