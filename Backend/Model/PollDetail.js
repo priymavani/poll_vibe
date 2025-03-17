@@ -8,7 +8,10 @@ const pollSchema = mongoose.Schema({
 
     poll_details: {
         poll_title: { type: String, required: true },
-        poll_options: [{ type: String, required: true }],
+        poll_options: [{
+            text: { type: String, required: true },
+            imageUrl: { type: String, required: false }
+        }],
     },
 
     poll_settings: {
