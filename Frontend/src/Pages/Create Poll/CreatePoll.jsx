@@ -23,12 +23,18 @@ const CreatePoll = () => {
     {
       id: 1,
       placeholder: "Option 1",
-      value: ""
+      value: "",
+      imageUrl: "",
+      public_id: "",
+      isLoading: false
     },
     {
       id: 2,
       placeholder: "Option 2",
-      value: ""
+      value: "",
+      imageUrl: "",
+      public_id: "",
+      isLoading: false
     },
   ])
 
@@ -75,47 +81,79 @@ const CreatePoll = () => {
 
   const navigate = useNavigate();
 
+  const [errorMessage, setErrorMessage] = useState("");
 
   const CreatePoll = async () => {
-
     try {
+        // Validate required fields for image poll
+        if (selectedValue === "image-poll") {
+            const hasEmptyFields = options.some(option => !option.value || !option.imageUrl);
+            if (hasEmptyFields) {
+                throw new Error("Please fill in all options and upload images for each option");
+            }
+        }
 
-      // const Poll_End_Time = switchStates["Require-Participant-Name"] === "" ? false : switchStates["Require-Participant-Name"]
+        const pollOptions = selectedValue === "image-poll" 
+            ? options.map((item) => ({
+                text: item.value,
+                imageUrl: item.imageUrl,
+                public_id: item.public_id
+            })).filter(option => option.text && option.imageUrl) // Ensure both text and image exist
+            : options.map((item) => ({
+                text: item.value
+            })).filter(option => option.text); // Filter out empty options
 
-      const response = await axios.post("http://localhost:8008/poll", {
-        "endDate": dateTime === "" ? "null" : dateTime,
-        "poll_details": {
-          "poll_title": pollTitle,
-          "poll_options": options.map((item) => item.value),
-        },
-        "poll_settings": {
-          "oneVotePerIP": switchStates["One-Vote-Per-IP"],
-          "allowMultipleSelection": switchStates["Allow-Multiple-Option-Selection"],
-          "requireParticipantName": switchStates["Require-Participant-Name"],
-          "allowComments": switchStates["allow-comments"],
-          "resultVisibility": ResultVisibilityValue,
-          "closePollOnScheduleTime": switchStates["Require-Participant-Name"] === "" ? false : switchStates["Require-Participant-Name"]
-        },
-        "Created_by": "67c1b8030a9d81fad20caa0e"
-      })
+        if (pollOptions.length < 2) {
+            throw new Error("Please add at least two valid options");
+        }
 
-      return (response.data.PollId)
+        const response = await axios.post("http://localhost:8008/poll", {
+            "endDate": dateTime === "" ? "null" : dateTime,
+            "poll_details": {
+                "poll_title": pollTitle,
+                "poll_options": pollOptions,
+                "poll_type": selectedValue
+            },
+            "poll_settings": {
+                "oneVotePerIP": switchStates["One-Vote-Per-IP"],
+                "allowMultipleSelection": switchStates["Allow-Multiple-Option-Selection"],
+                "requireParticipantName": switchStates["Require-Participant-Name"],
+                "allowComments": switchStates["allow-comments"],
+                "resultVisibility": ResultVisibilityValue,
+                "closePollOnScheduleTime": switchStates["Close-Poll-on-Scheduled-Time"]
+            },
+            "Created_by": "67c1b8030a9d81fad20caa0e"
+        });
+
+        if (response.data && response.data.PollId) {
+            return response.data.PollId;
+        } else {
+            throw new Error("No poll ID received from server");
+        }
     } catch (err) {
-      console.log("Error :", err.message)
+        console.error("Error creating poll:", err.message);
+        throw err;
     }
   }
 
   const HandleCreatePoll = async () => {
     try {
+      if (!pollTitle.trim()) {
+        setErrorMessage("Please enter a poll title");
+        return;
+      }
+
+      setErrorMessage(""); // Clear any previous errors
       const pollId = await CreatePoll();
 
       if (pollId) {
         navigate(`/poll/${pollId}`);
       } else {
-        console.error("Poll ID is undefined");
+        setErrorMessage("Failed to create poll - no poll ID received");
       }
     } catch (err) {
       console.error("Error creating poll:", err);
+      setErrorMessage(err.message || "Failed to create poll");
     }
   };
 
@@ -125,7 +163,10 @@ const CreatePoll = () => {
     setOptions([...options, {
       id: options[options.length - 1].id + 1,
       placeholder: `Option ${options[options.length - 1].id + 1}`,
-      value: ""
+      value: "",
+      imageUrl: "",
+      public_id: "",
+      isLoading: false
     }])
   }
 
@@ -145,14 +186,18 @@ const CreatePoll = () => {
   }
 
   return (
-    <div className='bg-[#111827] w-full h-screen flex flex-col justify-center items-center overflow-hidden'>
-
-      <div className='mb-8'>
+    <div className='bg-[#111827] w-full min-h-screen flex flex-col justify-center items-center'>
+      <div className='mb-8 pt-8'>
         <h1 className='text-white text-2xl font-medium text-center'>Create a Vibe Poll</h1>
         <h1 className='text-xs font-extralight text-gray-400 text-center'>Complete the below fields to create your poll.</h1>
       </div>
 
-      <div className="bg-[#1F2937] sm:w-xl max-sm:w-sm p-5 rounded-lg border-t-3 border-[#8E51FF] ">
+      <div className="bg-[#1F2937] sm:w-xl max-sm:w-sm p-5 rounded-lg border-t-3 border-[#8E51FF] max-h-[80vh] overflow-y-auto mb-8">
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-md">
+            <p className="text-red-200 text-sm">{errorMessage}</p>
+          </div>
+        )}
 
         {/* Poll Title */}
         <div className='mb-8'>
@@ -177,7 +222,9 @@ const CreatePoll = () => {
         </div>
 
 
-        {selectedValue === "image-poll" ? (<ImagePoll />) : (<div className='mb-8'>
+        {selectedValue === "image-poll" ? (
+          <ImagePoll options={options} setOptions={setOptions} />
+        ) : (<div className='mb-8'>
           <Label className="text-white text-xs pb-1">Poll Options</Label>
           {
             options.map((item) => (
@@ -225,6 +272,7 @@ const CreatePoll = () => {
               />
               <Label htmlFor={config.id} className="text-white">
                 {config.label}
+                
               </Label>
             </div>
           ))}
